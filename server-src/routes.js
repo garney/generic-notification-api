@@ -20,6 +20,7 @@ export default class Routes {
 
   }
   static init(app) {
+    console.log('🤡 ~ Routes ~ init ~ app:')
     const { discordConfig } = configuration;
       
     app
@@ -187,7 +188,21 @@ export default class Routes {
       }
   
       if (Routes.channel) {
-        await Routes.channel.send(req.body.message);
+        const {url, message, imgSrc} = req.body;
+        if(url || imgSrc) {
+          const embed = new EmbedBuilder()
+                .setTitle(message)
+                .setDescription(url)
+                .setImage(imgSrc)
+                .setColor(0x00AE86);
+        
+          await Routes.channel.send({ embeds: [embed] });
+
+        } else {
+          await Routes.channel.send(message);
+
+        }
+      
         return res.json({ success: true });
       } else {
         return res.status(500).json({ 
