@@ -1,0 +1,13 @@
+.app .status {
+  font-weight: bold;
+  color: darkgreen;
+}
+.app .id {
+  font-weight: bold;
+}
+.app .dice img {
+  width: 50px;
+  height: 50px;
+}
+
+/*# sourceMappingURL=/index.css.map */
