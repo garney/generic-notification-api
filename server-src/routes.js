@@ -186,9 +186,17 @@ export default class Routes {
           error: 'Message is required' 
         });
       }
+
+      const {url, message, imgSrc, channelId} = req.body;
+      let channel = Routes.channel;
+      if(channelId) {
+        const tempChannel = Routes.client.channels.cache.get(channelId);
+        if(tempChannel) {
+          channel = tempChannel;
+        }
+      }
   
-      if (Routes.channel) {
-        const {url, message, imgSrc} = req.body;
+      if (channel) {
         if(url || imgSrc) {
           const embed = new EmbedBuilder()
                 .setTitle(message)
@@ -196,10 +204,10 @@ export default class Routes {
                 .setImage(imgSrc)
                 .setColor(0x00AE86);
         
-          await Routes.channel.send({ embeds: [embed] });
+          await channel.send({ embeds: [embed] });
 
         } else {
-          await Routes.channel.send(message);
+          await channel.send(message);
 
         }
       
