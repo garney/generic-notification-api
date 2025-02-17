@@ -1,6 +1,7 @@
 import shortId from 'shortid';
 import fs from 'fs';
 import path from 'path';
+import Routes from './routes';
 
 export default class Socket {
   constructor(socket) {
@@ -27,6 +28,7 @@ export default class Socket {
     this.socket.on('roll', this.roll);
     this.socket.on('getLogs', this.getLogs);
     this.socket.on('getLogContents', this.getLogContents);
+    this.socket.on('getStatus', this.getStatus);
   }
 
   destroy = () => {
@@ -36,6 +38,7 @@ export default class Socket {
     this.socket.off('roll', this.roll);
     this.socket.off('getLogs', this.getLogs);
     this.socket.off('getLogContents', this.getLogContents);
+    this.socket.off('getStatus', this.getStatus);
   }
 
   onDisconnect = () => {
@@ -63,6 +66,10 @@ export default class Socket {
     }
     const logContents = fs.readFileSync(logPath, 'utf8');
     this.socket.emit('logContents', logContents);
+  }
+
+  getStatus = () => {
+    this.socket.emit('statusList', Routes.status);
   }
 
   static init(server) {
