@@ -13,6 +13,71 @@ const { Client, Collection, Events, GatewayIntentBits, Intents, Constants, Embed
 const SOCKET_PORT = configuration.PORT;
 const SOCKET_URL = process.env.SOCKET_URL || configuration.SOCKET_URL;
 
+const clientDictionary = {};
+
+function createNewClient(token, channelId) {
+  return new Promise((resolve, reject) => {
+    if (clientDictionary[token]) {
+      const client = clientDictionary[token];
+      const channel = client.channels.cache.get(channelId);
+      // if (channel) {
+      //   channel.send('Test message from bot!');
+      // }
+      resolve({
+        client,
+        channel
+      });
+    } else {
+      const client = new Client({ 
+        partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'COMMAND'],
+        intents: [
+          GatewayIntentBits.Guilds,
+          GatewayIntentBits.GuildMessages,
+          GatewayIntentBits.MessageContent,
+          GatewayIntentBits.GuildMembers,
+          GatewayIntentBits.DirectMessages,
+          GatewayIntentBits.DirectMessageTyping,
+        ],
+      });
+      
+      client.on("message", message => { 
+        // console.log('🎮 ~ file: index2.js:20 ~ message', message);
+        // Checks if the message says "hello"
+        if (message.content === "hello") { 
+            // Sending custom message to the channel
+            message.channel.send("Hello Geeks!!"); 
+        }
+      });
+      client.on("messageCreate", message => { 
+        // console.log('🎮 ~ file: index2.js:20 ~ messageCreate', message);
+        // Checks if the message says "hello"
+        if (message.content === "hello") { 
+            // Sending custom message to the channel
+            message.channel.send("Hello Geeks!!"); 
+        }
+      });
+
+      client.once('ready', () => {
+        // console.log(`Logged in as ${Routes.client.user.tag}!`);
+        
+        // Get the channel and send a test message
+        const channel = client.channels.cache.get(channelId);
+        if (channel) {
+          channel.send('Test message from bot! Hello There! ' + channelId);
+        }
+        
+        clientDictionary[token] = client;
+        resolve({
+          client,
+          channel
+        });
+      });
+
+      client.login(token).catch(reject);
+    }
+  });
+} 
+
 
 export default class Routes {
 
@@ -38,6 +103,7 @@ export default class Routes {
       .set('view engine', 'ejs')
       .get('/', Routes.loadIndex)
       .post('/send-notification', Routes.sendNotification)
+      .post('/setup-discord', Routes.setUpDiscord)
       .post('/store-data', Routes.storeData)
       .get('/get-data/:filename', Routes.getData)
       .post('/check-in', Routes.checkIn)
@@ -45,17 +111,17 @@ export default class Routes {
     ;
 
 
-    Routes.client.once('ready', () => {
-      // console.log(`Logged in as ${Routes.client.user.tag}!`);
+    // Routes.client.once('ready', () => {
+    //   // console.log(`Logged in as ${Routes.client.user.tag}!`);
       
-      // Get the channel and send a test message
-      Routes.channel = Routes.client.channels.cache.get(discordConfig.popmartChannel);
-      if (Routes.channel) {
-        Routes.channel.send('Test message from bot!');
-      }
-    });
+    //   // Get the channel and send a test message
+    //   Routes.channel = Routes.client.channels.cache.get(discordConfig.popmartChannel);
+    //   if (Routes.channel) {
+    //     Routes.channel.send('Test message from bot!');
+    //   }
+    // });
 
-    Routes.client.login(discordConfig.token);
+    // Routes.client.login(discordConfig.token);
   }
 
   
@@ -179,7 +245,21 @@ export default class Routes {
   }
 
   static async sendNotification(req, res) {
+    
+    let channel;
+
     try {
+      if(req.body.token && req.body.channelId) {
+        const discordDetails = await createNewClient(req.body.token, req.body.channelId);
+        channel = discordDetails.channel;
+      }
+      
+      if(!channel) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Channel not found' 
+        });
+      }
       if (!req.body.message) {
         return res.status(400).json({ 
           success: false, 
@@ -187,15 +267,7 @@ export default class Routes {
         });
       }
 
-      const {url, message, imgSrc, channelId} = req.body;
-      let channel = Routes.channel;
-      if(channelId) {
-        const tempChannel = Routes.client.channels.cache.get(channelId);
-        if(tempChannel) {
-          channel = tempChannel;
-        }
-      }
-  
+      const {url, message, imgSrc} = req.body;
       if (channel) {
         if(url || imgSrc) {
           const embed = new EmbedBuilder()
@@ -218,6 +290,32 @@ export default class Routes {
           error: 'Discord channel not initialized' 
         });
       }
+    } catch (error) {
+      return res.status(500).json({ 
+        success: false, 
+        error: error.message 
+      });
+    }
+  }
+  static async setUpDiscord(req, res) {
+    
+    let channel;
+
+    try {
+      if(req.body.token && req.body.channelId) {
+        const discordDetails = await createNewClient(req.body.token, req.body.channelId);
+        channel = discordDetails.channel;
+      }
+      
+      if(!channel) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Channel not found' 
+        });
+      } 
+      channel.send('You have Set up your discord bot for this token! Well Done!!');
+      return res.json({ success: true });
+     
     } catch (error) {
       return res.status(500).json({ 
         success: false, 
@@ -253,35 +351,35 @@ Routes.sessions = {};
 
 
 
-Routes.client = new Client({ 
-	partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'COMMAND'],
-	intents: [
-		GatewayIntentBits.Guilds,
-		GatewayIntentBits.GuildMessages,
-		GatewayIntentBits.MessageContent,
-		GatewayIntentBits.GuildMembers,
-		GatewayIntentBits.DirectMessages,
-		GatewayIntentBits.DirectMessageTyping,
-	],
-});
+// Routes.client = new Client({ 
+// 	partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'COMMAND'],
+// 	intents: [
+// 		GatewayIntentBits.Guilds,
+// 		GatewayIntentBits.GuildMessages,
+// 		GatewayIntentBits.MessageContent,
+// 		GatewayIntentBits.GuildMembers,
+// 		GatewayIntentBits.DirectMessages,
+// 		GatewayIntentBits.DirectMessageTyping,
+// 	],
+// });
 
-Routes.client.on("message", message => { 
+// Routes.client.on("message", message => { 
   
-	// console.log('🎮 ~ file: index2.js:20 ~ message', message);
-    // Checks if the message says "hello"
-    if (message.content === "hello") { 
+// 	// console.log('🎮 ~ file: index2.js:20 ~ message', message);
+//     // Checks if the message says "hello"
+//     if (message.content === "hello") { 
   
-        // Sending custom message to the channel
-        message.channel.send("Hello Geeks!!"); 
-    }
-});
-Routes.client.on("messageCreate", message => { 
+//         // Sending custom message to the channel
+//         message.channel.send("Hello Geeks!!"); 
+//     }
+// });
+// Routes.client.on("messageCreate", message => { 
   
-	// console.log('🎮 ~ file: index2.js:20 ~ messageCreate', message);
-    // Checks if the message says "hello"
-    if (message.content === "hello") { 
+// 	// console.log('🎮 ~ file: index2.js:20 ~ messageCreate', message);
+//     // Checks if the message says "hello"
+//     if (message.content === "hello") { 
   
-        // Sending custom message to the channel
-        message.channel.send("Hello Geeks!!"); 
-    }
-});
+//         // Sending custom message to the channel
+//         message.channel.send("Hello Geeks!!"); 
+//     }
+// });
