@@ -48345,6 +48345,121 @@ function Status(_ref) {
 }
 
 module.exports = Status;
+},{"react":"../node_modules/react/index.js","./config":"config.js","./socket/index":"socket/index.js","./app.scss":"app.scss"}],"listEditor.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = ListEditor;
+
+var _react = _interopRequireWildcard(require("react"));
+
+var _config = _interopRequireDefault(require("./config"));
+
+var _index = _interopRequireDefault(require("./socket/index"));
+
+require("./app.scss");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return; var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+function ListEditor(_ref) {
+  var _ref$listName = _ref.listName,
+      listName = _ref$listName === void 0 ? 'PRODUCT_LIST' : _ref$listName,
+      _ref$title = _ref.title,
+      title = _ref$title === void 0 ? 'list' : _ref$title,
+      _ref$socket = _ref.socket,
+      socket = _ref$socket === void 0 ? {} : _ref$socket;
+
+  var _useState = (0, _react.useState)([]),
+      _useState2 = _slicedToArray(_useState, 2),
+      productList = _useState2[0],
+      setProductList = _useState2[1];
+
+  var _useState3 = (0, _react.useState)([]),
+      _useState4 = _slicedToArray(_useState3, 2),
+      dataFileContents = _useState4[0],
+      setDataFileContent = _useState4[1];
+
+  var _useState5 = (0, _react.useState)([]),
+      _useState6 = _slicedToArray(_useState5, 2),
+      files = _useState6[0],
+      setFiles = _useState6[1];
+
+  var _useState7 = (0, _react.useState)(''),
+      _useState8 = _slicedToArray(_useState7, 2),
+      discordBotToken = _useState8[0],
+      setDiscordBotToken = _useState8[1];
+
+  var _useState9 = (0, _react.useState)(''),
+      _useState10 = _slicedToArray(_useState9, 2),
+      channelId = _useState10[0],
+      setChannelId = _useState10[1];
+
+  var _useState11 = (0, _react.useState)(''),
+      _useState12 = _slicedToArray(_useState11, 2),
+      productUrl = _useState12[0],
+      setProductUrl = _useState12[1];
+
+  var _useState13 = (0, _react.useState)(''),
+      _useState14 = _slicedToArray(_useState13, 2),
+      productId = _useState14[0],
+      setProductId = _useState14[1];
+
+  var _useState15 = (0, _react.useState)(''),
+      _useState16 = _slicedToArray(_useState15, 2),
+      extraElemClick = _useState16[0],
+      setExtraElemClick = _useState16[1];
+
+  var _useState17 = (0, _react.useState)(listName),
+      _useState18 = _slicedToArray(_useState17, 2),
+      importFilename = _useState18[0],
+      setImportFilename = _useState18[1];
+
+  (0, _react.useEffect)(function () {
+    if (socket.id) {
+      socket.connection.emit('getDataFiles');
+      socket.connection.on('dataFilesList', function (data) {
+        setFiles(data);
+      });
+      socket.connection.on('dataFileContents', function (data) {
+        console.log(data);
+        setDataFileContent(data);
+      });
+    }
+  }, [socket.id]);
+  return /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("h1", null, title), /*#__PURE__*/_react.default.createElement("div", null, files.map(function (file, idx) {
+    return /*#__PURE__*/_react.default.createElement("div", {
+      key: idx,
+      onClick: function onClick() {
+        return socket.connection.emit('readDataFile', file);
+      }
+    }, file);
+  })), /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("h2", null, "Data File Contents"), /*#__PURE__*/_react.default.createElement("table", null, /*#__PURE__*/_react.default.createElement("thead", null, /*#__PURE__*/_react.default.createElement("tr", null, /*#__PURE__*/_react.default.createElement("th", null, "URL"), /*#__PURE__*/_react.default.createElement("th", null, "Ignore"), /*#__PURE__*/_react.default.createElement("th", null, "Extra Elem Click"), /*#__PURE__*/_react.default.createElement("th", null, "Product ID"))), /*#__PURE__*/_react.default.createElement("tbody", null, dataFileContents && dataFileContents.map(function (item, idx) {
+    return /*#__PURE__*/_react.default.createElement("tr", {
+      key: idx
+    }, /*#__PURE__*/_react.default.createElement("td", null, item.url), /*#__PURE__*/_react.default.createElement("td", null, /*#__PURE__*/_react.default.createElement("input", {
+      type: "checkbox",
+      checked: item.ignore
+    })), /*#__PURE__*/_react.default.createElement("td", null, item.extraElemClick), /*#__PURE__*/_react.default.createElement("td", null, item.productId));
+  })))));
+}
 },{"react":"../node_modules/react/index.js","./config":"config.js","./socket/index":"socket/index.js","./app.scss":"app.scss"}],"app.js":[function(require,module,exports) {
 "use strict";
 
@@ -48359,6 +48474,8 @@ var _dice = _interopRequireDefault(require("./dice"));
 var _logs = _interopRequireDefault(require("./logs"));
 
 var _status = _interopRequireDefault(require("./status"));
+
+var _listEditor = _interopRequireDefault(require("./listEditor"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -48401,7 +48518,9 @@ function App(_ref) {
     className: "status"
   }, connectionDetails.status), " with connection ID ", /*#__PURE__*/_react.default.createElement("span", {
     className: "id"
-  }, connectionId)), /*#__PURE__*/_react.default.createElement(_status.default, {
+  }, connectionId)), /*#__PURE__*/_react.default.createElement(_listEditor.default, {
+    socket: socket
+  }), /*#__PURE__*/_react.default.createElement(_status.default, {
     socket: socket
   }), /*#__PURE__*/_react.default.createElement(_logs.default, {
     socket: socket
@@ -48409,7 +48528,7 @@ function App(_ref) {
 }
 
 module.exports = App;
-},{"react":"../node_modules/react/index.js","./config":"config.js","./app.scss":"app.scss","./dice":"dice.js","./logs":"logs.js","./status":"status.js"}],"index.js":[function(require,module,exports) {
+},{"react":"../node_modules/react/index.js","./config":"config.js","./app.scss":"app.scss","./dice":"dice.js","./logs":"logs.js","./status":"status.js","./listEditor":"listEditor.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 
 require("babel-polyfill");

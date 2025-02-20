@@ -6,6 +6,7 @@ import './app.scss';
 import Dice from './dice';
 import Logs from './logs';
 import Status from './status';
+import ListEditor from './listEditor';
 
 function App({socket,connectionId}) {
     const [connectionDetails, setConnectionDetails] = useState({});
@@ -29,6 +30,7 @@ function App({socket,connectionId}) {
                 connection ID <span className="id">{connectionId}</span>
             </div>
             {/* <Dice socket={socket}/> */}
+            <ListEditor socket={socket}/>
             <Status socket={socket}/>
             <Logs socket={socket}/>
         </div>

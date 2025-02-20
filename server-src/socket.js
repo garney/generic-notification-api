@@ -29,6 +29,9 @@ export default class Socket {
     this.socket.on('getLogs', this.getLogs);
     this.socket.on('getLogContents', this.getLogContents);
     this.socket.on('getStatus', this.getStatus);
+    this.socket.on('getDataFiles', this.getDataFiles);
+    this.socket.on('readDataFile', this.readDataFile);
+    this.socket.on('updateDataFile', this.updateDataFile);
   }
 
   destroy = () => {
@@ -39,6 +42,9 @@ export default class Socket {
     this.socket.off('getLogs', this.getLogs);
     this.socket.off('getLogContents', this.getLogContents);
     this.socket.off('getStatus', this.getStatus);
+    this.socket.off('getDataFiles', this.getDataFiles);
+    this.socket.off('readDataFile', this.readDataFile);
+    this.socket.off('updateDataFile', this.updateDataFile);
   }
 
   onDisconnect = () => {
@@ -70,6 +76,32 @@ export default class Socket {
 
   getStatus = () => {
     this.socket.emit('statusList', Routes.status);
+  }
+
+  getDataFiles = () => {
+    const dataDir = path.join(__dirname, '../data');
+    const files = fs.readdirSync(dataDir);
+    this.socket.emit('dataFilesList', files);
+  }
+
+  readDataFile = (filename) => {
+    const filePath = path.join(__dirname, '../data', filename);
+    if (!fs.existsSync(filePath)) {
+      this.socket.emit('dataFileContents', { error: 'Data file not found' });
+      return;
+    }
+    const fileContents = fs.readFileSync(filePath, 'utf8');
+    this.socket.emit('dataFileContents', JSON.parse(fileContents));
+  }
+
+  updateDataFile = (filename, contents) => {
+    const filePath = path.join(__dirname, '../data', filename);
+    if (!fs.existsSync(filePath)) {
+      this.socket.emit('updateDataFileResult', { error: 'Data file not found' });
+      return;
+    }
+    fs.writeFileSync(filePath, JSON.stringify(contents, useCallback, 3));
+    this.socket.emit('updateDataFileResult', { success: true });
   }
 
   static init(server) {
