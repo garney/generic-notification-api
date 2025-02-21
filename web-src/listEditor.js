@@ -9,6 +9,7 @@ export default function ListEditor({ listName = 'PRODUCT_LIST', title = 'list', 
     const [productList, setProductList] = useState([]);
     const [dataFileContents, setDataFileContent] = useState([]);
     const [files, setFiles] = useState([]);
+    const [file, setFile] = useState('');
     const [discordBotToken, setDiscordBotToken] = useState('');
     const [channelId, setChannelId] = useState('');
     const [productUrl, setProductUrl] = useState('');
@@ -29,13 +30,25 @@ export default function ListEditor({ listName = 'PRODUCT_LIST', title = 'list', 
         }
     }, [socket.id]);
 
+    const handleIgnoreChange = (event, index) => {
+        const updatedData = [...dataFileContents];
+        updatedData[index].ignore = event.target.checked;
+        setDataFileContent(updatedData);
+        socket.connection.emit('updateDataFile', file, updatedData);
+    };
+
+    const onHandleSelectFile = (file) => {
+        setFile(file);
+        socket.connection.emit('readDataFile', file);
+    }
+
     return (
         <div>
             <h1>{title}</h1>
             <div>
                 {
                     files.map((file, idx) => (
-                        <div key={idx} onClick={() => socket.connection.emit('readDataFile', file)}>
+                        <div key={idx} onClick={() => {onHandleSelectFile(file)}}>
                             {file}
                         </div>
                     ))
@@ -56,7 +69,7 @@ export default function ListEditor({ listName = 'PRODUCT_LIST', title = 'list', 
                     {dataFileContents && dataFileContents.map((item, idx) => (
                         <tr key={idx}>
                             <td>{item.url}</td>
-                            <td><input type="checkbox" checked={item.ignore} /></td>
+                            <td><input type="checkbox" checked={item.ignore} onChange={(event => handleIgnoreChange(event, idx))}/></td>
                             <td>{item.extraElemClick}</td>
                             <td>{item.productId}</td>
                         </tr>

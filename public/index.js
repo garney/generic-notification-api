@@ -48367,6 +48367,14 @@ function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return 
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -48404,33 +48412,38 @@ function ListEditor(_ref) {
 
   var _useState7 = (0, _react.useState)(''),
       _useState8 = _slicedToArray(_useState7, 2),
-      discordBotToken = _useState8[0],
-      setDiscordBotToken = _useState8[1];
+      file = _useState8[0],
+      setFile = _useState8[1];
 
   var _useState9 = (0, _react.useState)(''),
       _useState10 = _slicedToArray(_useState9, 2),
-      channelId = _useState10[0],
-      setChannelId = _useState10[1];
+      discordBotToken = _useState10[0],
+      setDiscordBotToken = _useState10[1];
 
   var _useState11 = (0, _react.useState)(''),
       _useState12 = _slicedToArray(_useState11, 2),
-      productUrl = _useState12[0],
-      setProductUrl = _useState12[1];
+      channelId = _useState12[0],
+      setChannelId = _useState12[1];
 
   var _useState13 = (0, _react.useState)(''),
       _useState14 = _slicedToArray(_useState13, 2),
-      productId = _useState14[0],
-      setProductId = _useState14[1];
+      productUrl = _useState14[0],
+      setProductUrl = _useState14[1];
 
   var _useState15 = (0, _react.useState)(''),
       _useState16 = _slicedToArray(_useState15, 2),
-      extraElemClick = _useState16[0],
-      setExtraElemClick = _useState16[1];
+      productId = _useState16[0],
+      setProductId = _useState16[1];
 
-  var _useState17 = (0, _react.useState)(listName),
+  var _useState17 = (0, _react.useState)(''),
       _useState18 = _slicedToArray(_useState17, 2),
-      importFilename = _useState18[0],
-      setImportFilename = _useState18[1];
+      extraElemClick = _useState18[0],
+      setExtraElemClick = _useState18[1];
+
+  var _useState19 = (0, _react.useState)(listName),
+      _useState20 = _slicedToArray(_useState19, 2),
+      importFilename = _useState20[0],
+      setImportFilename = _useState20[1];
 
   (0, _react.useEffect)(function () {
     if (socket.id) {
@@ -48444,11 +48457,25 @@ function ListEditor(_ref) {
       });
     }
   }, [socket.id]);
+
+  var handleIgnoreChange = function handleIgnoreChange(event, index) {
+    var updatedData = _toConsumableArray(dataFileContents);
+
+    updatedData[index].ignore = event.target.checked;
+    setDataFileContent(updatedData);
+    socket.connection.emit('updateDataFile', file, updatedData);
+  };
+
+  var onHandleSelectFile = function onHandleSelectFile(file) {
+    setFile(file);
+    socket.connection.emit('readDataFile', file);
+  };
+
   return /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("h1", null, title), /*#__PURE__*/_react.default.createElement("div", null, files.map(function (file, idx) {
     return /*#__PURE__*/_react.default.createElement("div", {
       key: idx,
       onClick: function onClick() {
-        return socket.connection.emit('readDataFile', file);
+        onHandleSelectFile(file);
       }
     }, file);
   })), /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("h2", null, "Data File Contents"), /*#__PURE__*/_react.default.createElement("table", null, /*#__PURE__*/_react.default.createElement("thead", null, /*#__PURE__*/_react.default.createElement("tr", null, /*#__PURE__*/_react.default.createElement("th", null, "URL"), /*#__PURE__*/_react.default.createElement("th", null, "Ignore"), /*#__PURE__*/_react.default.createElement("th", null, "Extra Elem Click"), /*#__PURE__*/_react.default.createElement("th", null, "Product ID"))), /*#__PURE__*/_react.default.createElement("tbody", null, dataFileContents && dataFileContents.map(function (item, idx) {
@@ -48456,7 +48483,10 @@ function ListEditor(_ref) {
       key: idx
     }, /*#__PURE__*/_react.default.createElement("td", null, item.url), /*#__PURE__*/_react.default.createElement("td", null, /*#__PURE__*/_react.default.createElement("input", {
       type: "checkbox",
-      checked: item.ignore
+      checked: item.ignore,
+      onChange: function onChange(event) {
+        return handleIgnoreChange(event, idx);
+      }
     })), /*#__PURE__*/_react.default.createElement("td", null, item.extraElemClick), /*#__PURE__*/_react.default.createElement("td", null, item.productId));
   })))));
 }
@@ -48602,7 +48632,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "65303" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61378" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

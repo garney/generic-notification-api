@@ -1,6 +1,7 @@
 import { config } from 'process';
 import fs from 'fs';
 import path from 'path';
+const cors = require('cors');
 
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
@@ -89,12 +90,22 @@ export default class Routes {
     const { discordConfig } = configuration;
       
     app
+      .use(cors())
       .use(
         queryParser({
           parseNull: true,
           parseBoolean: true
         })
       )
+      .use((req, res, next) => {
+        res.setHeader('Access-Control-Allow-Origin', '*'); // Change '*' to your extension ID if needed
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        if (req.method === 'OPTIONS') {
+            return res.sendStatus(204); // Preflight response
+        }
+        next();
+      })
       .use(bodyParser.urlencoded({ extended: false }))
       .use(bodyParser.json())
       .use(cookieParser())
