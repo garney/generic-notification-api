@@ -11,6 +11,8 @@ export default class Socket {
     this.setup();
   }
 
+  static statusList = {};
+
   roll = (num) => {
     console.log('roll');
     const dice = [];
@@ -75,7 +77,7 @@ export default class Socket {
   }
 
   getStatus = () => {
-    this.socket.emit('statusList', Routes.status);
+    this.socket.emit('statusList', Socket.statusList);
   }
 
   getDataFiles = () => {
@@ -83,6 +85,26 @@ export default class Socket {
     const files = fs.readdirSync(dataDir);
     this.socket.emit('dataFilesList', files);
   }
+  static updateStatus(id, status, data) {
+    const prevStatus = this.statusList[id] || {};
+    if (!id) {
+      throw new Error('ID is required to update status');
+    }
+    this.statusList = this.statusList || {};
+    this.statusList[id] = {
+      id,
+      status,
+      data,
+      lastUpdated: new Date()
+    };
+    console.log(`Status updated for ID: ${id}`, this.statusList[id]);
+    Socket.io.emit('statusUpdate', { id, status, data });
+    return {
+      prevStatus,
+      time: new Date()
+    };
+  }
+
 
   readDataFile = (filename) => {
     const filePath = path.join(__dirname, '../data', filename);

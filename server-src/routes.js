@@ -1,6 +1,7 @@
 import { config } from 'process';
 import fs from 'fs';
 import path from 'path';
+import Socket from './socket';
 const cors = require('cors');
 
 const bodyParser = require('body-parser');
@@ -118,6 +119,7 @@ export default class Routes {
       .post('/store-data', Routes.storeData)
       .get('/get-data/:filename', Routes.getData)
       .post('/check-in', Routes.checkIn)
+      .post('/status-update', Routes.statusUpdate)
       .get('/get-status', Routes.getStatus)
     ;
 
@@ -164,6 +166,32 @@ export default class Routes {
         }
         if(req.body.status) {
           Routes.logToFile(`${req.body.id} - ${req.body.status}`)
+        }
+      }
+    } catch(err) {
+    console.log('🤡 ~ Routes ~ checkIn ~ err:', err)
+
+    }
+    return res.json({
+      success: true,
+      data: Socket.statusList[req.body.id]
+    });
+  }
+  static statusUpdate(req, res) {
+    // console.log('🪵 ~ Routes ~ statusUpdate ~ req:', req);
+    try {
+      if (req.body.id) {
+        Routes.status[req.body.id] = {
+          ...req.body,
+          lastCheckIn: new Date()
+        }
+        if(req.body.status) {
+          const prevStatus = Socket.updateStatus(req.body.id, req.body.status, req.body.data);
+          return res.json({
+            success: true,
+            data: prevStatus
+          });
+          // Routes.logToFile(`${req.body.id} - ${req.body.status}`)
         }
       }
     } catch(err) {
