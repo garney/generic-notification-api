@@ -52,7 +52,7 @@ function Logs({socket = {}}) {
                                 return (
                                     <React.Fragment key={line}>
                                         {/* <strong style={{ color: 'gray' }}>{date}</strong> - {hash} - {urlMatch ? <a href={urlMatch[0]} target="_blank" rel="noopener noreferrer" style={{ color: 'blue' }}>{message}</a> : message} */}
-                                        <strong style={{ color: 'gray' }}>{date}</strong> - {hash} - {urlMatch ? <a href={urlMatch[0]} target="_blank" rel="noopener noreferrer" style={{ color: 'blue' }}>{message}</a> : message}
+                                        <strong style={{ color: 'gray' }}>{new Date(date).toLocaleString()}</strong> - {hash} - {urlMatch ? <a href={urlMatch[0]} target="_blank" rel="noopener noreferrer" style={{ color: 'blue' }}>{message}</a> : message}
                                         <br />
                                     </React.Fragment>
                                 );

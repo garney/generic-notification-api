@@ -7,6 +7,7 @@ import Dice from './dice';
 import Logs from './logs';
 import Status from './status';
 import ListEditor from './listEditor';
+import StatusUpdates from './components/StatusUpdates';
 
 function App({socket,connectionId}) {
     const [connectionDetails, setConnectionDetails] = useState({});
@@ -29,9 +30,10 @@ function App({socket,connectionId}) {
                 <span className="status">{connectionDetails.status}</span> with
                 connection ID <span className="id">{connectionId}</span>
             </div>
+            <StatusUpdates socket={socket}/>
             {/* <Dice socket={socket}/> */}
             <ListEditor socket={socket}/>
-            <Status socket={socket}/>
+            {/* <Status socket={socket}/> */}
             <Logs socket={socket}/>
         </div>
     )
