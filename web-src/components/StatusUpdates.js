@@ -15,6 +15,8 @@ function StatusUpdates({ socket = {} }) {
                         id: update.id,
                         status: update.status,
                         data: update.data,
+                        tabId: update.tabId,
+                        type: update.type,
                         timestamp: new Date().toLocaleString(),
                     }
                 }));
@@ -78,6 +80,8 @@ function StatusUpdates({ socket = {} }) {
                 <div>Status</div>
                 <div>Timestamp</div>
                 <div>Data</div>
+                <div>Tab ID</div>
+                <div>Type</div>
                 <div>Actions</div>
             </div>
 
@@ -101,6 +105,9 @@ function StatusUpdates({ socket = {} }) {
                                 {formatData(update.data)}
                             </span>
                         </div>
+
+                        <div className="status-tabId">{update.tabId}</div>
+                        <div className="status-type">{update.type}</div>
 
                         <div className="status-actions">
                             <button className="status-button status-button-view">View</button>

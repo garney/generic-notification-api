@@ -13,7 +13,7 @@
 
 .status-table-header {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(7, 1fr);
     gap: 1rem;
     padding: 0.5rem 1rem;
     background: #f3f4f6;
@@ -30,7 +30,7 @@
 
 .status-row {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(7, 1fr);
     gap: 1rem;
     padding: 0.75rem 1rem;
     background: white;
@@ -201,6 +201,14 @@
         content: "Actions:";
     }
 
+    .status-row > div:nth-child(6)::before {
+        content: "Tab ID:";
+    }
+
+    .status-row > div:nth-child(7)::before {
+        content: "Type:";
+    }
+
     .status-data {
         overflow: visible;
         white-space: normal;
@@ -214,4 +222,13 @@
     .status-actions {
         justify-content: flex-start;
     }
+}
+
+/* Add styles for the new columns */
+.status-tabId, .status-type {
+    font-size: 0.875rem;
+    color: #6b7280;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 } 

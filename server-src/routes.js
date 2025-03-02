@@ -186,7 +186,7 @@ export default class Routes {
           lastCheckIn: new Date()
         }
         if(req.body.status) {
-          const prevStatus = Socket.updateStatus(req.body.id, req.body.status, req.body.data);
+          const prevStatus = Socket.updateStatus(req.body.id, req.body.status, req.body.data, req.body.type, req.body.tabId);
           return res.json({
             success: true,
             data: prevStatus

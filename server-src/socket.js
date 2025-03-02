@@ -85,7 +85,7 @@ export default class Socket {
     const files = fs.readdirSync(dataDir);
     this.socket.emit('dataFilesList', files);
   }
-  static updateStatus(id, status, data, type) {
+  static updateStatus(id, status, data, type, tabId) {
     const prevStatus = this.statusList[id] || {};
     if (!id) {
       throw new Error('ID is required to update status');
@@ -96,10 +96,11 @@ export default class Socket {
       status,
       data,
       type,
+      tabId,
       lastUpdated: new Date()
     };
     console.log(`Status updated for ID: ${id}`, this.statusList[id]);
-    Socket.io.emit('statusUpdate', { id, status, data, type });
+    Socket.io.emit('statusUpdate', { id, status, data, type, tabId });
     return {
       prevStatus,
       time: new Date()
