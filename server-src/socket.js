@@ -12,6 +12,7 @@ export default class Socket {
   }
 
   static statusList = {};
+  static actionQueueForTabs = {};
 
   roll = (num) => {
     console.log('roll');
@@ -34,6 +35,7 @@ export default class Socket {
     this.socket.on('getDataFiles', this.getDataFiles);
     this.socket.on('readDataFile', this.readDataFile);
     this.socket.on('updateDataFile', this.updateDataFile);
+    this.socket.on('addActionToQueue', this.addActionToQueue);
   }
 
   destroy = () => {
@@ -47,6 +49,7 @@ export default class Socket {
     this.socket.off('getDataFiles', this.getDataFiles);
     this.socket.off('readDataFile', this.readDataFile);
     this.socket.off('updateDataFile', this.updateDataFile);
+    this.socket.off('addActionToQueue', this.addActionToQueue);
   }
 
   onDisconnect = () => {
@@ -126,6 +129,22 @@ export default class Socket {
     }
     fs.writeFileSync(filePath, JSON.stringify(contents, useCallback, 3));
     this.socket.emit('updateDataFileResult', { success: true });
+  }
+
+  addActionToQueue = ({tabId, type, data}) => {
+    if (!Socket.actionQueueForTabs[tabId]) {
+      Socket.actionQueueForTabs[tabId] = [];
+    }
+    Socket.actionQueueForTabs[tabId].push({ type, data });
+    console.log(`Added action to queue for tab ${tabId}:`, { type, data });
+  }
+
+  static getNextAction(tabId) {
+    console.log('🪵 ~ Socket ~ getNextAction ~ tabId:', tabId, this.actionQueueForTabs);
+    if (!this.actionQueueForTabs[tabId] || this.actionQueueForTabs[tabId].length === 0) {
+      return null;
+    }
+    return this.actionQueueForTabs[tabId].shift();
   }
 
   static init(server) {

@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import './StatusUpdates.css';
+import ActionModal from './ActionModal';
 
 function StatusUpdates({ socket = {} }) {
     const [updates, setUpdates] = useState({});
     const [modalData, setModalData] = useState(null);
+    const [actionModalOpen, setActionModalOpen] = useState(false);
+    const [selectedTabId, setSelectedTabId] = useState(null);
 
     useEffect(() => {
         if (socket.id) {
@@ -71,6 +74,17 @@ function StatusUpdates({ socket = {} }) {
         setModalData(null);
     };
 
+    const handleActionClick = (tabId) => {
+        setSelectedTabId(tabId);
+        setActionModalOpen(true);
+    };
+
+    const handleActionSubmit = (actionData) => {
+        if (socket.id) {
+            socket.connection.emit('addActionToQueue', actionData);
+        }
+    };
+
     return (
         <div className="status-container">
             <h2 className="status-title">Status Updates</h2>
@@ -110,12 +124,27 @@ function StatusUpdates({ socket = {} }) {
                         <div className="status-type">{update.type}</div>
 
                         <div className="status-actions">
-                            <button className="status-button status-button-view">View</button>
-                            <button className="status-button status-button-clear">Clear</button>
+                            {update.tabId && (
+                                <button 
+                                    className="status-button status-button-action"
+                                    onClick={() => handleActionClick(update.tabId)}
+                                >
+                                    Actions
+                                </button>
+                            )}
+                            
                         </div>
                     </div>
                 ))}
             </div>
+
+            <ActionModal
+                isOpen={actionModalOpen}
+                onClose={() => setActionModalOpen(false)}
+                onSubmit={handleActionSubmit}
+                socket={socket}
+                tabId={selectedTabId}
+            />
 
             {modalData && (
                 <div className="modal-overlay" onClick={closeModal}>

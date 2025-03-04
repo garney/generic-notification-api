@@ -177,7 +177,7 @@ export default class Routes {
       data: Socket.statusList[req.body.id]
     });
   }
-  static statusUpdate(req, res) {
+  static async statusUpdate(req, res) {
     // console.log('🪵 ~ Routes ~ statusUpdate ~ req:', req);
     try {
       if (req.body.id) {
@@ -187,9 +187,20 @@ export default class Routes {
         }
         if(req.body.status) {
           const prevStatus = Socket.updateStatus(req.body.id, req.body.status, req.body.data, req.body.type, req.body.tabId);
+          let nextAction;
+          if (req.body.tabId) {
+            nextAction = await Socket.getNextAction(req.body.tabId);
+            if(nextAction) {
+              nextAction.tabId = req.body.tabId;
+            }
+          }
           return res.json({
             success: true,
-            data: prevStatus
+            data: {
+              prevStatus,
+              nextAction
+
+            }
           });
           // Routes.logToFile(`${req.body.id} - ${req.body.status}`)
         }
