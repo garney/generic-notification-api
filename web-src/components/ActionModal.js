@@ -18,7 +18,7 @@ function ActionModal({ isOpen, onClose, onSubmit, socket, tabId }) {
     const actionTypes = [
         { value: 'reloadTab', label: 'Reload Tab' },
         { value: 'loadPriority', label: 'Load Priority URL' },
-        { value: 'openPrioriy', label: 'Load Priority URL' },
+        { value: 'openPrioriy', label: 'Open New Priority URL' },
         { value: 'setUpConfig', label: 'Setup Configuration' }
     ];
 

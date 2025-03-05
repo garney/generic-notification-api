@@ -225,10 +225,22 @@
 }
 
 /* Add styles for the new columns */
-.status-tabId, .status-type {
+.status-tabId, .status-type{
     font-size: 0.875rem;
     color: #6b7280;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 } 
+.status-image{
+    font-size: 0.875rem;
+    color: #6b7280;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100px;
+} 
+
+.status-image img {
+    width: 100px;
+}

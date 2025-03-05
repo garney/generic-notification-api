@@ -94,8 +94,9 @@ function StatusUpdates({ socket = {} }) {
                 <div>Status</div>
                 <div>Timestamp</div>
                 <div>Data</div>
-                <div>Tab ID</div>
+                <div style={{display: 'none'}}>Tab ID</div>
                 <div>Type</div>
+                <div>image</div>
                 <div>Actions</div>
             </div>
 
@@ -103,7 +104,7 @@ function StatusUpdates({ socket = {} }) {
                 {Object.values(updates).map((update) => (
                     <div key={update.id} className="status-row">
                         <div>
-                            <span className="status-id">{shortenId(update.id)}</span>
+                            <span className="status-id">{update.id}</span>
                         </div>
                         
                         <div className="status-label">{update.status}</div>
@@ -120,8 +121,11 @@ function StatusUpdates({ socket = {} }) {
                             </span>
                         </div>
 
-                        <div className="status-tabId">{update.tabId}</div>
+                        <div className="status-tabId" style={{display: 'none'}}>{update.tabId}</div>
                         <div className="status-type">{update.type}</div>
+                        <div className="status-image">
+                            {update.imageUrl ? <img src={update.imageUrl}/> : 'n/a'}
+                        </div>
 
                         <div className="status-actions">
                             {update.tabId && (
