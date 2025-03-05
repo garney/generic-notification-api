@@ -124,7 +124,7 @@ function StatusUpdates({ socket = {} }) {
                         <div className="status-tabId" style={{display: 'none'}}>{update.tabId}</div>
                         <div className="status-type">{update.type}</div>
                         <div className="status-image">
-                            {update.imageUrl ? <img src={update.imageUrl}/> : 'n/a'}
+                            {update.data && update.data.imageUrl ? <img src={update.data.imageUrl}/> : 'n/a'}
                         </div>
 
                         <div className="status-actions">
