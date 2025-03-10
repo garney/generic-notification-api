@@ -46,7 +46,7 @@ const ActionModal = ({ isOpen, onClose, onSubmit, socket, tabId, productLists = 
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        let data = { action };
+        let data = {};
         
         switch (action) {
             case 'startProductWatcher':
@@ -56,59 +56,60 @@ const ActionModal = ({ isOpen, onClose, onSubmit, socket, tabId, productLists = 
                 }
                 
                 data = {
-                    action,
-                    listName: selectedListKey,
-                    products: productLists[selectedListKey]
+                    type: action,
+                    data: {
+                        listName: selectedListKey,
+                        productList: productLists[selectedListKey]
+                    },
+                    tabId
                 };
-                
-                if (socket.id) {
-                    socket.connection.emit('startProductWatcher', data, (response) => {
-                        if (response.success) {
-                            alert(response.message);
-                            getWatcherStatus();
-                        } else {
-                            alert('Failed to start product watcher');
-                        }
-                    });
-                }
                 break;
                 
             case 'stopWatcher':
-                if (socket.id) {
-                    socket.connection.emit('stopWatcher', {}, (response) => {
-                        if (response.success) {
-                            alert(response.message);
-                            getWatcherStatus();
-                        } else {
-                            alert('Failed to stop product watcher');
-                        }
-                    });
-                }
+                data = {
+                    type: action,
+                    data: {},
+                    tabId
+                };
                 break;
                 
             case 'getWatcherStatus':
-                getWatcherStatus();
+                data = {
+                    type: action,
+                    data: {},
+                    tabId
+                };
                 break;
                 
             case 'reloadTab':
-                if (socket.id) {
-                    socket.connection.emit('reloadTab', { tabId }, () => {
-                        // The page will reload, so no need to handle the response
-                    });
+                data = {
+                    type: action,
+                    data: {},
+                    tabId
+                };
+                break;
+                
+            case 'custom':
+                try {
+                    const parsedParams = actionData.params ? JSON.parse(actionData.params) : {};
+                    data = {
+                        type: actionData.actionName,
+                        data: parsedParams,
+                        tabId
+                    };
+                } catch (error) {
+                    alert('Invalid JSON in parameters field');
+                    return;
                 }
                 break;
                 
             default:
-                // For other custom actions
-                data = {
-                    ...data,
-                    ...actionData,
-                    tabId
-                };
-                onSubmit(data);
-                break;
+                alert('Please select an action');
+                return;
         }
         
+        // Simply call onSubmit with the prepared data
+        onSubmit(data);
         onClose();
     };
 
