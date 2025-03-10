@@ -1,165 +1,259 @@
 import React, { useState, useEffect } from 'react';
 import './ActionModal.css';
 
-function ActionModal({ isOpen, onClose, onSubmit, socket, tabId }) {
-    const [actionType, setActionType] = useState('');
+const ActionModal = ({ isOpen, onClose, onSubmit, socket, tabId, productLists = {} }) => {
+    const [action, setAction] = useState('');
     const [actionData, setActionData] = useState({});
-    const [priorityList, setPriorityList] = useState([]);
+    const [selectedListKey, setSelectedListKey] = useState('');
+    const [watcherStatus, setWatcherStatus] = useState({ active: false });
 
     useEffect(() => {
-        if (socket?.id && actionType === 'loadPriority') {
-            socket.connection.emit('readDataFile', 'priority-list.json');
-            socket.connection.on('dataFileContents', (data) => {
-                setPriorityList(data);
+        // Initialize selected list and get watcher status when modal opens
+        if (isOpen) {
+            if (Object.keys(productLists).length > 0 && !selectedListKey) {
+                setSelectedListKey(Object.keys(productLists)[0]);
+            }
+            getWatcherStatus();
+        }
+    }, [isOpen, socket.id, productLists]);
+
+    const getWatcherStatus = () => {
+        if (socket.id) {
+            socket.connection.emit('getWatcherStatus', {}, (status) => {
+                setWatcherStatus(status);
             });
         }
-    }, [socket?.id, actionType]);
-
-    const actionTypes = [
-        { value: 'reloadTab', label: 'Reload Tab' },
-        { value: 'loadPriority', label: 'Load Priority URL' },
-        { value: 'openPrioriy', label: 'Open New Priority URL' },
-        { value: 'setUpConfig', label: 'Setup Configuration' }
-    ];
-
-    const handleSubmit = () => {
-        if (!tabId) {
-            alert('Tab ID is required');
-            return;
-        }
-
-        onSubmit({
-            type: actionType,
-            tabId,
-            data: actionData
-        });
-        onClose();
     };
 
-    const renderActionFields = () => {
-        switch (actionType) {
+    const handleActionChange = (e) => {
+        setAction(e.target.value);
+        // Reset action data when action changes
+        setActionData({});
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setActionData({
+            ...actionData,
+            [name]: type === 'checkbox' ? checked : value
+        });
+    };
+
+    const handleListChange = (e) => {
+        setSelectedListKey(e.target.value);
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        
+        let data = { action };
+        
+        switch (action) {
+            case 'startProductWatcher':
+                if (!selectedListKey || !productLists[selectedListKey]) {
+                    alert('Please select a valid product list');
+                    return;
+                }
+                
+                data = {
+                    action,
+                    listName: selectedListKey,
+                    products: productLists[selectedListKey]
+                };
+                
+                if (socket.id) {
+                    socket.connection.emit('startProductWatcher', data, (response) => {
+                        if (response.success) {
+                            alert(response.message);
+                            getWatcherStatus();
+                        } else {
+                            alert('Failed to start product watcher');
+                        }
+                    });
+                }
+                break;
+                
+            case 'stopWatcher':
+                if (socket.id) {
+                    socket.connection.emit('stopWatcher', {}, (response) => {
+                        if (response.success) {
+                            alert(response.message);
+                            getWatcherStatus();
+                        } else {
+                            alert('Failed to stop product watcher');
+                        }
+                    });
+                }
+                break;
+                
+            case 'getWatcherStatus':
+                getWatcherStatus();
+                break;
+                
             case 'reloadTab':
-                return null;
-            case 'loadPriority':
-                return (
-                    <div className="action-fields">
-                        <select 
-                            value={actionData.url || ''} 
-                            onChange={(e) => setActionData({ ...actionData, url: e.target.value })}
-                        >
-                            <option value="">Select from Priority List</option>
-                            {priorityList.map((item, index) => (
-                                <option key={index} value={item.url}>{item.url}</option>
-                            ))}
-                        </select>
-                        <div className="separator">OR</div>
-                        <input
-                            type="text"
-                            placeholder="Enter URL manually"
-                            value={actionData.manualUrl || ''}
-                            onChange={(e) => setActionData({ ...actionData, manualUrl: e.target.value })}
-                        />
-                    </div>
-                );
-            case 'openPrioriy':
-                return (
-                    <div className="action-fields">
-                        <select 
-                            value={actionData.url || ''} 
-                            onChange={(e) => setActionData({ ...actionData, url: e.target.value })}
-                        >
-                            <option value="">Select from Priority List</option>
-                            {priorityList.map((item, index) => (
-                                <option key={index} value={item.url}>{item.url}</option>
-                            ))}
-                        </select>
-                        <div className="separator">OR</div>
-                        <input
-                            type="text"
-                            placeholder="Enter URL manually"
-                            value={actionData.manualUrl || ''}
-                            onChange={(e) => setActionData({ ...actionData, manualUrl: e.target.value })}
-                        />
-                    </div>
-                );
-            case 'setUpConfig':
-                return (
-                    <div className="action-fields">
-                        <input
-                            type="text"
-                            placeholder="Priority Mode"
-                            value={actionData.priorityMode || ''}
-                            onChange={(e) => setActionData({ ...actionData, priorityMode: e.target.value })}
-                        />
-                        <input
-                            type="number"
-                            placeholder="Reload Interval (seconds)"
-                            value={actionData.reloadInterval || ''}
-                            onChange={(e) => setActionData({ ...actionData, reloadInterval: e.target.value })}
-                        />
-                        <input
-                            type="number"
-                            placeholder="Try Again In (seconds)"
-                            value={actionData.tryAgainInSeconds || ''}
-                            onChange={(e) => setActionData({ ...actionData, tryAgainInSeconds: e.target.value })}
-                        />
-                        <input
-                            type="number"
-                            placeholder="Idle Check In (seconds)"
-                            value={actionData.idleCheckInSecs || ''}
-                            onChange={(e) => setActionData({ ...actionData, idleCheckInSecs: e.target.value })}
-                        />
-                        <input
-                            type="text"
-                            placeholder="Priority URL"
-                            value={actionData.priorityUrl || ''}
-                            onChange={(e) => setActionData({ ...actionData, priorityUrl: e.target.value })}
-                        />
-                    </div>
-                );
+                if (socket.id) {
+                    socket.connection.emit('reloadTab', { tabId }, () => {
+                        // The page will reload, so no need to handle the response
+                    });
+                }
+                break;
+                
             default:
-                return null;
+                // For other custom actions
+                data = {
+                    ...data,
+                    ...actionData,
+                    tabId
+                };
+                onSubmit(data);
+                break;
         }
+        
+        onClose();
     };
 
     if (!isOpen) return null;
 
     return (
-        <div className="action-modal-overlay" onClick={onClose}>
-            <div className="action-modal-content" onClick={e => e.stopPropagation()}>
+        <div className="action-modal-overlay">
+            <div className="action-modal-content">
                 <div className="action-modal-header">
-                    <h3>Select Action</h3>
-                    <button className="modal-close" onClick={onClose}>×</button>
+                    <h3>Perform Action</h3>
+                    <button className="action-modal-close" onClick={onClose}>×</button>
                 </div>
+                
                 <div className="action-modal-body">
-                    <select 
-                        value={actionType} 
-                        onChange={(e) => setActionType(e.target.value)}
-                        className="action-type-select"
-                    >
-                        <option value="">Select an action</option>
-                        {actionTypes.map(type => (
-                            <option key={type.value} value={type.value}>
-                                {type.label}
-                            </option>
-                        ))}
-                    </select>
-
-                    {renderActionFields()}
-
-                    <div className="action-modal-footer">
-                        <button 
-                            className="action-submit-button" 
-                            onClick={handleSubmit}
-                            disabled={!actionType || !tabId}
-                        >
-                            Submit
-                        </button>
-                    </div>
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-group">
+                            <label>Select Action</label>
+                            <select 
+                                value={action} 
+                                onChange={handleActionChange}
+                                className="action-select"
+                                required
+                            >
+                                <option value="">-- Select an action --</option>
+                                <option value="startProductWatcher">Start Product Watcher</option>
+                                <option value="stopWatcher">Stop Product Watcher</option>
+                                <option value="getWatcherStatus">Get Watcher Status</option>
+                                <option value="reloadTab">Reload Tab</option>
+                                <option value="custom">Custom Action</option>
+                            </select>
+                        </div>
+                        
+                        {action === 'startProductWatcher' && (
+                            <div className="form-group">
+                                <label>Select Product List</label>
+                                {Object.keys(productLists).length > 0 ? (
+                                    <select 
+                                        value={selectedListKey} 
+                                        onChange={handleListChange}
+                                        className="product-list-select"
+                                        required
+                                    >
+                                        {Object.keys(productLists).map(key => (
+                                            <option key={key} value={key}>{key.replace(/_/g, ' ')}</option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    <div className="no-lists-message">
+                                        No product lists available. Please create a product list first.
+                                    </div>
+                                )}
+                                
+                                <div className="watcher-status-info">
+                                    <p>Current Watcher Status: 
+                                        <span className={`status-badge ${watcherStatus.active ? 'active' : 'inactive'}`}>
+                                            {watcherStatus.active ? 'Active' : 'Inactive'}
+                                        </span>
+                                    </p>
+                                    {watcherStatus.active && watcherStatus.listName && (
+                                        <p>Watching List: <strong>{watcherStatus.listName}</strong></p>
+                                    )}
+                                </div>
+                                
+                                {selectedListKey && productLists[selectedListKey] && (
+                                    <div className="product-list-info">
+                                        <p>Products in list: {productLists[selectedListKey].length}</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        
+                        {action === 'stopWatcher' && (
+                            <div className="watcher-status-info">
+                                <p>Current Watcher Status: 
+                                    <span className={`status-badge ${watcherStatus.active ? 'active' : 'inactive'}`}>
+                                        {watcherStatus.active ? 'Active' : 'Inactive'}
+                                    </span>
+                                </p>
+                                {watcherStatus.active && watcherStatus.listName && (
+                                    <p>Watching List: <strong>{watcherStatus.listName}</strong></p>
+                                )}
+                            </div>
+                        )}
+                        
+                        {action === 'getWatcherStatus' && (
+                            <div className="watcher-status-info">
+                                <p>Current Watcher Status: 
+                                    <span className={`status-badge ${watcherStatus.active ? 'active' : 'inactive'}`}>
+                                        {watcherStatus.active ? 'Active' : 'Inactive'}
+                                    </span>
+                                </p>
+                                {watcherStatus.active && watcherStatus.listName && (
+                                    <p>Watching List: <strong>{watcherStatus.listName}</strong></p>
+                                )}
+                            </div>
+                        )}
+                        
+                        {action === 'reloadTab' && (
+                            <div className="reload-info">
+                                <p>This will reload the tab with ID: <strong>{tabId}</strong></p>
+                            </div>
+                        )}
+                        
+                        {action === 'custom' && (
+                            <>
+                                <div className="form-group">
+                                    <label>Action Name</label>
+                                    <input
+                                        type="text"
+                                        name="actionName"
+                                        value={actionData.actionName || ''}
+                                        onChange={handleInputChange}
+                                        placeholder="Enter action name"
+                                        className="action-input"
+                                        required
+                                    />
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label>Action Parameters (JSON)</label>
+                                    <textarea
+                                        name="params"
+                                        value={actionData.params || ''}
+                                        onChange={handleInputChange}
+                                        placeholder='{"key": "value"}'
+                                        className="action-textarea"
+                                        rows={5}
+                                    />
+                                </div>
+                            </>
+                        )}
+                        
+                        <div className="action-buttons">
+                            <button type="button" className="cancel-button" onClick={onClose}>
+                                Cancel
+                            </button>
+                            <button type="submit" className="submit-button">
+                                Execute Action
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     );
-}
+};
 
 export default ActionModal; 

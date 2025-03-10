@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import './StatusUpdates.css';
 import ActionModal from './ActionModal';
+import ProductListManager from './ProductListManager';
 
 function StatusUpdates({ socket = {} }) {
     const [updates, setUpdates] = useState({});
     const [modalData, setModalData] = useState(null);
     const [actionModalOpen, setActionModalOpen] = useState(false);
     const [selectedTabId, setSelectedTabId] = useState(null);
+    const [showProductManager, setShowProductManager] = useState(false);
+    const [productLists, setProductLists] = useState({});
 
     useEffect(() => {
         if (socket.id) {
@@ -46,6 +49,9 @@ function StatusUpdates({ socket = {} }) {
                     }
                 }));
             });
+
+            // Load product lists
+            loadProductLists();
         }
 
         return () => {
@@ -56,6 +62,32 @@ function StatusUpdates({ socket = {} }) {
             }
         };
     }, [socket.id]);
+
+    const loadProductLists = () => {
+        try {
+            const storedLists = localStorage.getItem('PRODUCT_LISTS');
+            const lists = storedLists ? JSON.parse(storedLists) : { 'DEFAULT_LIST': [] };
+            setProductLists(lists);
+        } catch (error) {
+            console.error('Error loading product lists:', error);
+        }
+    };
+
+    // Listen for storage events to keep product lists in sync across tabs
+    useEffect(() => {
+        const handleStorageChange = (e) => {
+            if (e.key === 'PRODUCT_LISTS') {
+                const newValue = e.newValue ? JSON.parse(e.newValue) : { 'DEFAULT_LIST': [] };
+                setProductLists(newValue);
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
+    }, []);
 
     const shortenId = (id) => {
         return id.substring(0, 8) + '...';
@@ -85,9 +117,36 @@ function StatusUpdates({ socket = {} }) {
         }
     };
 
+    const clearUpdate = (id) => {
+        setUpdates(prevUpdates => {
+            const newUpdates = { ...prevUpdates };
+            delete newUpdates[id];
+            return newUpdates;
+        });
+    };
+
+    const toggleProductManager = () => {
+        setShowProductManager(!showProductManager);
+    };
+
     return (
         <div className="status-container">
-            <h2 className="status-title">Status Updates</h2>
+            <div className="status-header">
+                <h2 className="status-title">Status Updates</h2>
+                <button 
+                    className="product-manager-toggle" 
+                    onClick={toggleProductManager}
+                >
+                    {showProductManager ? 'Hide Product Manager' : 'Show Product Manager'}
+                </button>
+            </div>
+            
+            {showProductManager && (
+                <ProductListManager 
+                    socket={socket} 
+                    onProductListsUpdate={loadProductLists}
+                />
+            )}
             
             <div className="status-table-header">
                 <div>ID</div>
@@ -137,6 +196,18 @@ function StatusUpdates({ socket = {} }) {
                                 </button>
                             )}
                             
+                            <button 
+                                className="status-button status-button-view"
+                                onClick={() => handleDataClick(update.data)}
+                            >
+                                View
+                            </button>
+                            <button 
+                                className="status-button status-button-clear"
+                                onClick={() => clearUpdate(update.id)}
+                            >
+                                Clear
+                            </button>
                         </div>
                     </div>
                 ))}
@@ -148,6 +219,7 @@ function StatusUpdates({ socket = {} }) {
                 onSubmit={handleActionSubmit}
                 socket={socket}
                 tabId={selectedTabId}
+                productLists={productLists}
             />
 
             {modalData && (
